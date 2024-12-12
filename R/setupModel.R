@@ -52,8 +52,9 @@ setupModel <- function(modelCode, customDist,
   }
   
   if(nim.constants$N_areas == 1 & !addDummyDim){
-    hyperparam.idx <- which(params %in% c("h.Mu.R", "h.sigma.R", "h.Mu.S", "h.sigma.S", "h.Mu.betaR.R", "h.sigma.betaR.R"))
-    params <- params[-hyperparam.idx]
+    hyperparam.idx <- which(params %in% c("h.Mu.R", "h.sigma.R", "h.Mu.S", "h.sigma.S", "h.Mu.betaR.R", "h.sigma.betaR.R", "h.mu.dd", "h.sigma.dd"))
+    resvar.idx <- which(params %in% c("sigmaR.R", "sigmaR.S", "sigmaR.dd"))
+    params <- params[-c(hyperparam.idx, resvar.idx)]
   }
   
   ## Simulate initial values
@@ -67,7 +68,8 @@ setupModel <- function(modelCode, customDist,
                                                 nim.constants = nim.constants, 
                                                 R_perF = R_perF,
                                                 survVarT = survVarT,
-                                                fitRodentCov = fitRodentCov)
+                                                fitRodentCov = fitRodentCov,
+                                                initVals.seed = initVals.seed[c])
     }else{
       
       initVals[[c]] <- simulateInits(nim.data = nim.data, 

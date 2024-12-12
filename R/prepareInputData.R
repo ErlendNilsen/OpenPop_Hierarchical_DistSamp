@@ -26,6 +26,9 @@
 #' @param dataVSconstants logical. If TRUE (default) returns a list of 2 lists
 #' containing data and constants for analysis with Nimble. If FALSE, returns a
 #' list containing all data and constants. 
+#' @param addDummyDim logical. If TRUE (default) adds a dummy dimension when only
+#' one area is included to allow running the multi-area setup. If FALSE, drops
+#' the dummy dimension for running with the single area setup. 
 #' @param save logical. If TRUE (default) saves prepared data in working 
 #' directory as .rds file.
 #'
@@ -37,7 +40,7 @@
 
 
 
-prepareInputData <- function(d_trans, d_obs, d_cmr, d_rodent, localities = NULL, areas = NULL, areaAggregation, excl_neverObs = TRUE, R_perF, R_parent_drop0, sumR.Level = "group", dataVSconstants = TRUE, save = TRUE){
+prepareInputData <- function(d_trans, d_obs, d_cmr, d_rodent, localities = NULL, areas = NULL, areaAggregation, excl_neverObs = TRUE, R_perF, R_parent_drop0, sumR.Level = "group", dataVSconstants = TRUE, addDummyDim = TRUE, save = TRUE){
   
   
   # Multi-area setup #
@@ -98,7 +101,7 @@ prepareInputData <- function(d_trans, d_obs, d_cmr, d_rodent, localities = NULL,
   
   A <- matrix(NA, nrow = N_sUnits, ncol = N_yearsTot)
   y <- Year_obs <- zeros_dist <- matrix(NA, nrow = N_sUnits, ncol = max(obs_count$count))
-  sumR_obs <- sumR_obs_year <- sumAd_obs<- matrix(NA, nrow = N_sUnits, ncol = max(obs_count$count))
+  sumR_obs <- sumR_obs_year <- sumAd_obs <- matrix(NA, nrow = N_sUnits, ncol = max(obs_count$count))
   
   L <- N_line_year <- N_J_line_year <- N_A_line_year <- array(0, dim = c(N_sUnits, max(site_count$count), N_yearsTot))
   
@@ -323,7 +326,7 @@ prepareInputData <- function(d_trans, d_obs, d_cmr, d_rodent, localities = NULL,
   }
   
   ## Add dummy dimensions if running for only one spatial unit
-  if(N_sUnits == 1){
+  if(N_sUnits == 1 & addDummyDim){
     N_sites <- c(N_sites, NA)
   }
   
@@ -366,8 +369,17 @@ prepareInputData <- function(d_trans, d_obs, d_cmr, d_rodent, localities = NULL,
     area_names = sUnits
   )
   
+  ## Drop dummy dimension when only one area is included
+  if(N_sUnits == 1 & !addDummyDim){
+    
+    for(i in 1:length(input.data)){
+      input.data[[i]] <- drop(input.data[[i]])
+    }
+    
+  }
+  
   ## Assembling Nimble data
-  nim.data <- list(sumR_obs = input.data$sumR_obs, sumAd_obs = sumAd_obs,
+  nim.data <- list(sumR_obs = input.data$sumR_obs, sumAd_obs = input.data$sumAd_obs,
                    y = input.data$y, 
                    zeros.dist = input.data$zeros_dist, L = input.data$L, 
                    N_line_year = input.data$N_line_year, 
@@ -381,7 +393,6 @@ prepareInputData <- function(d_trans, d_obs, d_cmr, d_rodent, localities = NULL,
                         W = input.data$W,
                         N_obs = input.data$N_obs, Year_obs = input.data$Year_obs,
                         N_sites = input.data$N_sites, 
-                        R_obs_year = input.data$R_obs_year, N_R_obs = input.data$N_R_obs,
                         N_ageC = N_ageC,
                         N_areas = input.data$N_areas, area_names = input.data$area_names,
                         SurvAreaIdx = input.data$SurvAreaIdx,

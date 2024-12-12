@@ -13,7 +13,9 @@
 #'
 #' @examples
 
-simulateInits_singleArea <- function(nim.data, nim.constants, R_perF, survVarT, fitRodentCov){
+simulateInits_singleArea <- function(nim.data, nim.constants, R_perF, survVarT, fitRodentCov, initVals.seed){
+  
+  set.seed(initVals.seed)
   
   # Limits and constants #
   #----------------------#
@@ -95,8 +97,8 @@ simulateInits_singleArea <- function(nim.data, nim.constants, R_perF, survVarT, 
   sigma <- exp(mu.dd + epsT.dd[1:N_years])
   esw <- sqrt(pi * sigma^2 / 2) 
   
-  p <- rep(NA, Tmax)
-  for(t in 1:Tmax){
+  p <- rep(NA, N_years)
+  for(t in 1:N_years){
     p[t] <- min(esw[t], W) / W
   }
 
